@@ -370,7 +370,12 @@ summary {
 
 
 <p>Welcome to the first installation of the highly touted TidyTuesday challenges (collaborative coding endeavors would be more accurate) by yours truly. This week’s coffee data/data dictionary can be found <a href="https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md">here</a>. Let’s begin, as they say, at the beginning.</p>
-<p>The first step is read in the data. I also drop the one observation that has <code>total_cup_points == 0</code> because a, it’s a huge outlier and will mess up our plots, and b, it’s annoying.</p>
+<p>The first step is to load the necessary packages and read in the data.</p>
+<pre class="r"><code>library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(RColorBrewer)</code></pre>
+<p>I also drop the one observation that has <code>total_cup_points == 0</code> because <strong>a</strong>, it’s a huge outlier and will mess up our plots, and <strong>b</strong>, it’s annoying.</p>
 <pre class="r"><code>coffee &lt;- read_csv(
   &quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv&quot;
 )

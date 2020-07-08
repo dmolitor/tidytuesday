@@ -5,18 +5,20 @@ date: "7/7/2020"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+Welcome to the first installation of the highly touted TidyTuesday challenges (collaborative coding endeavors would be more accurate) by yours truly. This week's coffee data/data dictionary can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md). Let's begin, as they say, at the beginning.
+
+The first step is to load the necessary packages and read in the data.
+```{r echo=TRUE,warning=FALSE,message=FALSE}
 library(tidyverse)
 library(ggplot2)
 library(GGally)
 library(RColorBrewer)
 ```
 
-Welcome to the first installation of the highly touted TidyTuesday challenges (collaborative coding endeavors would be more accurate) by yours truly. This week's coffee data/data dictionary can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md). Let's begin, as they say, at the beginning.
-
-The first step is read in the data. I also drop the one observation that has `total_cup_points == 0` because a, it's a huge outlier and will mess up our plots, and b, it's annoying. 
-
+I also drop the one observation that has `total_cup_points == 0` because **a**, it's a huge outlier and will mess up our plots, and **b**, it's annoying. 
 ```{r echo=TRUE, message=FALSE}
 coffee <- read_csv(
   "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv"
