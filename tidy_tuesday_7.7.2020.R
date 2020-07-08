@@ -68,8 +68,7 @@ ggplot(coffee_characteristics) +
 # How do the qualities relate to each other?
 plotFn <- function(data, mapping, method = "lm", ...) {
   p <- ggplot(data = data, mapping = mapping) +
-    geom_point(alpha = 0.1, color = "lightsteelblue3") +
-    geom_smooth(method = method, color = "lightsalmon3", se = FALSE)
+    geom_point(alpha = 0.1, color = "lightsteelblue3")
   p
 }
 

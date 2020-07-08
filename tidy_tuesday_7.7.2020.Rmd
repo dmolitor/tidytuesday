@@ -99,8 +99,7 @@ Finally, how do each of these qualities relate to each other and to overall qual
 # Define function for scatterplot and line of fit
 plotFn <- function(data, mapping, method = "lm", ...) {
   p <- ggplot(data = data, mapping = mapping) +
-    geom_point(alpha = 0.1, color = "lightsteelblue3") +
-    geom_smooth(method = method, color = "lightsalmon3", se = FALSE)
+    geom_point(alpha = 0.1, color = "lightsteelblue3")
   p
 }
 # Plot matrix of scatterplots
