@@ -1,0 +1,118 @@
+---
+title: "TidyTuesday"
+author: "Daniel Molitor"
+date: "7/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(RColorBrewer)
+```
+
+Welcome to the first installation of the highly touted TidyTuesday challenges (collaborative coding endeavors would be more accurate) by yours truly. This week's coffee data/data dictionary can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-07/readme.md). Let's begin, as they say, at the beginning.
+
+The first step is read in the data. I also drop the one observation that has `total_cup_points == 0` because a, it's a huge outlier and will mess up our plots, and b, it's annoying. 
+
+```{r echo=TRUE, message=FALSE}
+coffee <- read_csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv"
+)
+coffee <- coffee %>% filter(total_cup_points > 0)
+```
+In order to get familiar with the data, I examined a few aspects of coffee quality that I had prior knowledge of. Specifically, I knew that Arabica beans typically constitute higher quality coffee than Robusta beans. Does the data bear this out?
+```{r}
+ggplot(coffee) +
+  geom_boxplot(aes(x = factor(species),
+                   y = total_cup_points,
+                   color = factor(species))) +
+  coord_cartesian(ylim = c(60, 100)) +
+  labs(x = "Species", y = "Total Cup Points") +
+  theme(panel.grid.major = element_blank(),
+        legend.title = element_blank())
+```
+
+The answer is yes and no. Arabica beans seem to have a much higher quality variance than Robusta, however, the 25, 50, and 75th percentiles of Arabica quality are all higher than the corresponding percentiles of Robusta quality. So the answer is more yes than no.
+
+I was also familiar with the fact that Arabica beans tend to flourish at higher altitudes than Robusta beans. A quick check of our sample ensures that it is in line with this.
+```{r warning=FALSE}
+ggplot(coffee) +
+  geom_boxplot(aes(x = factor(species),
+                   y = altitude_mean_meters,
+                   color = factor(species))) +
+  coord_cartesian(ylim = c(0, 4000)) +
+  labs(x = "Species", y = "Altitude") +
+  theme(panel.grid.major = element_blank(),
+        legend.title = element_blank())
+```
+
+The pattern is similar to the one above. In general, Arabica beans are grown at higher altitudes than Robusta.
+
+Now for some information that is actually news, at least to me. What is the relationship between coffee quality and processing method? Let's check it out. We'll drop any obervations with `is.na(processing_method)` and arrange by descending median quality (I flipped the coordinates because the labels were getting messy and I'm lazy).
+```{r}
+ggplot(coffee %>%
+         filter(!is.na(processing_method))) +
+  geom_boxplot(aes(x = fct_reorder(factor(processing_method),
+                                   total_cup_points,
+                                   .fun = "median"),
+                   y = total_cup_points,
+                   color = factor(processing_method))) +
+  labs(x = "Processing Method", y = "Total Cup Points") +
+  theme(panel.grid.major = element_blank(),
+        legend.title = element_blank()) +
+  coord_flip()
+```
+
+Interesting. **Washed/Wet** has the highest and lowest quality beans but is 4/5 in terms of median quality. Other than that, I don't find this super informative. It looks like **Pulped natural/honey** and **Semi-washed/Semi-pulped** are the most consistent in quality.
+
+In the data, we're provided a number of qualities of each coffee sample, such as **moisture**, **aroma**, **sweetnes**, etc. Let's see how Arabica and Robusta compare, on average, along each of these qualities. Side note: several of these measures had different scales (0-10 vs. 0-1), so I scaled each measure by subtracting the mean and dividing by the standard deviation.
+```{r}
+# Summarise Qualities
+coffee_characteristics <- coffee %>%
+  mutate_at(vars(c(aroma:sweetness, moisture)), scale) %>%
+  group_by(species) %>%
+  summarise_at(vars(c(aroma:sweetness, moisture)), mean) %>%
+  pivot_longer(cols = aroma:moisture,
+               names_to = "quality",
+               values_to = "Scaled\nRating")
+# Get color palette
+colors <- brewer.pal(n = 3, name = "BrBG")
+# Plot heatmap
+ggplot(coffee_characteristics) +
+  geom_tile(aes(x = species, y = quality, fill = `Scaled\nRating`)) +
+  scale_fill_gradient2(midpoint = -1.5,
+                       low = colors[1],
+                       mid = colors[2],
+                       high = colors[3]) +
+  theme(axis.title = element_blank(),
+        legend.title = element_text(""),
+        panel.background = element_blank())
+```
+
+My first takeaway is that Arabica beans are consistent across almost every single one of these values. The only cell that is slightly more highlighted than the others is the *sweetness* cell. Robusta, on the other hand, varies significantly across these qualities. In some, such as *aftertaste* it is rated more highly than Arabica, while in others, such as *sweetness*, it is distinctly below Arabica.
+
+Finally, how do each of these qualities relate to each other and to overall quality. Below is a matrix of scatterplots between each pair of variables that outline this information (The labels get slightly cut off in this version).
+```{r fig.width=8,fig.height=4.5,dpi=500,out.width="1920px",out.height="500px",message=FALSE}
+# Define function for scatterplot and line of fit
+plotFn <- function(data, mapping, method = "lm", ...) {
+  p <- ggplot(data = data, mapping = mapping) +
+    geom_point(alpha = 0.1, color = "lightsteelblue3") +
+    geom_smooth(method = method, color = "lightsalmon3", se = FALSE)
+  p
+}
+# Plot matrix of scatterplots
+ggpairs(coffee,
+        columns = c(21:29, 31),
+        lower = list(continuous = wrap(plotFn)),
+        upper = list(continuous = wrap(plotFn)),
+        axisLabels = "none",
+        progress = FALSE) +
+  theme(panel.background = element_blank())
+```
+
+While this may not be even remotely enlightening or interesting to anybody else, I enjoyed this little dive into the world of coffee data.
+
+[Daniel](https://dmolitor.github.io/)

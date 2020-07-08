@@ -1,4 +1,7 @@
 library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(RColorBrewer)
 
 coffee <- read_csv(
   "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-07/coffee_ratings.csv"
@@ -6,7 +9,7 @@ coffee <- read_csv(
 
 # Drop outlier (probably data entry error) and drop unneeded cols
 coffee <- coffee %>%
-  filter(total_cup_points > 50)
+  filter(total_cup_points > 0)
 # Which coffee gets higher points typically?
 ggplot(coffee) +
   geom_boxplot(aes(x = factor(species),
@@ -42,7 +45,7 @@ ggplot(coffee %>%
 
 # What are the characteristics of both types of coffee?
 coffee_characteristics <- coffee %>%
-  mutate_at(vars(c(aroma:sweetness, moisture)), standardize) %>%
+  mutate_at(vars(c(aroma:sweetness, moisture)), scale) %>%
   group_by(species) %>%
   summarise_at(vars(c(aroma:sweetness, moisture)), mean) %>%
   pivot_longer(cols = aroma:moisture,
@@ -63,7 +66,7 @@ ggplot(coffee_characteristics) +
         panel.background = element_blank())
 
 # How do the qualities relate to each other?
-lowerFn <- function(data, mapping, method = "lm", ...) {
+plotFn <- function(data, mapping, method = "lm", ...) {
   p <- ggplot(data = data, mapping = mapping) +
     geom_point(alpha = 0.1, color = "lightsteelblue3") +
     geom_smooth(method = method, color = "lightsalmon3", se = FALSE)
@@ -71,8 +74,8 @@ lowerFn <- function(data, mapping, method = "lm", ...) {
 }
 
 ggpairs(coffee,
-        columns = c(1, 21:29, 31),
-        lower = list(continuous = wrap(lowerFn)),
-        upper = list(continuous = wrap(lowerFn)),
-        axisLabels = "internal")
-
+        columns = c(21:29, 31),
+        lower = list(continuous = wrap(plotFn)),
+        upper = list(continuous = wrap(plotFn)),
+        axisLabels = "internal") +
+  theme(panel.background = element_blank())
