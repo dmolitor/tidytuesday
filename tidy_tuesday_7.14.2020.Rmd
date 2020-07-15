@@ -1,3 +1,18 @@
+---
+title: "Tidy Tuesday"
+author: "Daniel Molitor"
+date: "7/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+This week's data on astronauts can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-14/readme.md)!
+
+Time to load packages and read in the data. This week I wanted to explore choropleth maps, so I didn't do too much data exploration and mostly focused
+on creating a choropleth map using a couple different methods.
+```{r}
 library(choroplethr)
 library(choroplethrMaps)
 library(ggmap)
@@ -10,8 +25,11 @@ library(tidyverse)
 astronauts <- read_csv(
   "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-14/astronauts.csv"
 )
+```
 
-# Clean country names
+For `choroplethr` and `ggplot2` versions of choropleth maps, the country names need to be correctly formatted. The next step is to format the names accordingly.
+In this chunk, `nationality_chor` is the name for `choroplethr` and `nationality_map` is for `ggplot2`.
+```{r}
 astronauts %<>%
   mutate(
     nationality       = case_when(
@@ -36,11 +54,11 @@ astronauts %<>%
       TRUE                                      ~ nationality
     )
   )
+```
 
-# Get choroplethr map data
-data("country.map")
-
-# Choropleth of country of origin
+The next step is to count the number of distinct astronauts per country. I also need to load the map data that is associated with `choroplethr`,
+specifically because I don't want Antarctica to show up in the map.
+```{r}
 country_count <- astronauts %>%
   distinct(nationality_chor, 
            name, 
@@ -49,6 +67,13 @@ country_count <- astronauts %>%
   rename(region = nationality_chor,
          value  = n)
 
+# Load map data
+data("country.map")
+```
+
+Now I want to use `choroplethr` to plot a choropleth where the country fill colors are determined by the count of astronauts originating in the 
+respective countries. Since `choroplethr` returns a `ggplot` object, I can tag on any standard `ggplot2` formatting options.
+```{r}
 country_choropleth(country_count,
                    num_colors = 8,
                    zoom = sort(unique(country.map$region))[-5],
@@ -62,8 +87,11 @@ country_choropleth(country_count,
        y = "") +
   scale_fill_brewer(palette = "YlOrRd") +
   theme(legend.title = element_blank())
+```
 
-# More detailed Choropleth
+Since the country names needed for `choroplethr` are slightly different from those needed by `ggplot2`, I need to retabulate the number of distinct
+astronauts in each country, this time using the `ggplot2` version of country name.
+```{r}
 country_count <- astronauts %>%
   distinct(nationality_map, 
            name, 
@@ -73,7 +101,14 @@ country_count <- astronauts %>%
          value  = n) %>%
   full_join(map_data("world"),
             by = "region")
+```
 
+Now I want to recreate the same (essentially) choropleth map, this time using `ggplot2`. First, a few notes. Since there are a bunch of countries with
+a small number of astronauts and a couple with a ton (U.S. and Russia in particular), using the default color gradient will end up masking the subtle
+differences on the lower end of the scale. To handle this I manually defined the color scale breaks within the `scale_fill_distiller` call using
+`values = c(0, 0.005, .03, ..1, .15, .25, .4, .6, .8, 1)`. From what I can tell, `choroplethr` doesn't allow you to manually override the default scale.
+Also, `ggplot2` allows me to change the `NA` color where `choroplethr` doesn't allow that flexibility from what I can tell.
+```{r}
 ggplot(country_count) +
   geom_polygon(aes(x = long, 
                    y = lat,
@@ -95,3 +130,11 @@ ggplot(country_count) +
   labs(x = "",
        y = "",
        title = "Astronauts by Nationality")
+```
+
+Although `choroplethr` seems to be a pretty nice package, the labels look funky and it seems to have much less flexibility than `ggplot2`.
+I, at least, will be sticking with `ggplot2` for any future choropleth needs.
+
+Thanks for reading all the way to the end of this boring post!
+
+[Daniel](https://dmolitor.com)
