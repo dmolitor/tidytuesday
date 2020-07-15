@@ -42,7 +42,9 @@ data("country.map")
 
 # Choropleth of country of origin
 country_count <- astronauts %>%
-  distinct(nationality_chlor, name, .keep_all = TRUE) %>%
+  distinct(nationality_chlor, 
+           name, 
+           .keep_all = TRUE) %>%
   count(nationality_chlor) %>%
   rename(region = nationality_chlor,
          value  = n)
@@ -57,12 +59,11 @@ country_choropleth(country_count,
         axis.ticks = element_blank(),
         axis.text = element_blank()) +
   labs(x = "",
-       y = "",
-       title = "Astronauts by Nationality") +
+       y = "") +
   scale_fill_brewer(palette = "YlOrRd") +
   theme(legend.title = element_blank())
 
-# More detailed Cholopleth
+# More detailed Choropleth
 world_data <- astronauts %>%
   distinct(nationality_map, name, .keep_all = TRUE) %>%
   count(nationality_map) %>%
