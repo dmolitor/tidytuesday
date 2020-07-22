@@ -1,11 +1,33 @@
+---
+title: "Tidy Tuesday"
+author: "Daniel Molitor"
+date: "7/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+Welcome to another installation of Tidy Tuesday. This week's data can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-21/readme.md)! 
+
+This time around I didn't have much time so I didn't explore anything too groundbreaking. Instead I fiddled with a couple
+thematic elements that I've wanted to look at for a while. Specifically, I installed the `viridis` package and the `cowplot` package.
+I love the `viridis` color schemes, and `cowplot` has some very nice, minimalistic themes. But first, let's load the packages
+and the data.
+```{r}
 library(cowplot)
 library(ggplot2)
 library(tidyverse)
 library(viridis)
 
 animal_outcomes <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/animal_outcomes.csv')
+```
 
-# Pivot animal_outcomes longer
+The next step is to `pivot_longer` the data, to get the regions in columnar format. Specifically, I want to tally the number of cases by
+outcome and by region so that I can arrange the plot axes accordingly. I do that in the following chunk.
+```{r}
 animal_outcomes_long <- animal_outcomes %>%
   pivot_longer(cols = ACT:WA,
                names_to = "region",
@@ -24,7 +46,11 @@ animal_outcomes_long <- animal_outcomes %>%
   group_by(region) %>%
   mutate(region_n = sum(count, na.rm = TRUE)) %>%
   ungroup()
+```
 
+Now, I want to plot a time-series bar graph of animal outcomes, where the bar for each year is stacked in descending order by the overall most common outcome.
+I'm going to use `scale_fill_viridis(option = "plasma")` as my color scale, and `theme_minimal_hgrid()` as my plot theme.
+```{r dpi=200}
 ggplot(animal_outcomes_long %>%
          mutate(outcome = factor(outcome,
                                  levels = animal_outcomes_long %>%
@@ -45,7 +71,11 @@ ggplot(animal_outcomes_long %>%
         axis.text.x = element_text(angle = 90),
         plot.title = element_text(face = "bold",
                                   hjust = 0.5))
+```
 
+Using the same color and plot theme, I want to plot essentially the same graph, except split out by region. Also, instead of plotting raw counts of outcomes,
+I will plot proportional outcomes for each region.
+```{r dpi=200}
 ggplot(animal_outcomes_long %>%
          mutate(outcome = factor(outcome,
                                  levels = animal_outcomes_long %>%
@@ -75,3 +105,9 @@ ggplot(animal_outcomes_long %>%
         axis.text.x = element_text(angle = 90),
         plot.title = element_text(face = "bold",
                                   hjust = 0.5))
+```
+
+And that's it! Hopefully I'll do something a little more interesting next time. However, my takeaway is that I really like the color palettes offered by
+`viridis` and the plot themes offered by `cowplot`.
+
+[Daniel](https://dmolitor.com)
