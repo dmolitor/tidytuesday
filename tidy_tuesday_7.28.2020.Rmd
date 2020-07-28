@@ -1,10 +1,29 @@
+---
+title: "Tidy Tuesday"
+author: "Daniel Molitor"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+This week's penguin data can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-07-28/readme.md)! The first step is to load the data and packages. I wanted to learn how to do a radar plot this week, so I'm focusing on using `plotly` to generate the desired plot.
+```{r}
 library(plotly)
 library(tidyverse)
 
 penguins_raw <- read_csv(
   'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-28/penguins_raw.csv'
 )
+```
 
+I want to use the radar plot to take a look at the penguins' sizes, split out by the three islands that are represented in the data.
+I'll begin by summarizing the average weight, bill depth, bill length, and flipper length of the penguins on each island.
+```{r}
 measures <- penguins_raw %>%
   mutate(`Body Mass (g)` = as.numeric(`Body Mass (g)`)/1000,
          `Flipper Length (mm)` = as.numeric(`Flipper Length (mm)`)/100,
@@ -18,7 +37,10 @@ measures <- penguins_raw %>%
   pivot_longer(cols = `Body Mass\n(kg)`:`Flipper Length (cm/10)`,
                names_to = "measure",
                values_to = "value")
+```
 
+Now to use a radar plot to look at these four size dimensions by island. As you can see, `plotly` has some very cool, built-in interactivity that can be played with here.
+```{r dpi = 150}
 plot_ly(
   type = "scatterpolar",
   mode = "lines",
@@ -79,3 +101,10 @@ plot_ly(
       color = "#f8f8f2"
     )
   )
+```
+
+My main takeaway is that `plotly` seems to have some nice templates for what would otherwise be pretty difficult-to-create plots using a package such as `ggplot2`. I'm not switching to it for the bulk of visualizations, but I like it a lot!
+
+Until next time,
+
+[Daniel](https://dmolitor.com)
