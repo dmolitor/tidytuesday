@@ -73,8 +73,7 @@ ggplot(types_total) +
                 label = country_name,
                 hjust = hjust,
                 angle = angle),
-            inherit.aes = FALSE,
-            color = "white") +
+            inherit.aes = FALSE) +
   annotate("text", 
            x = factor(rep(max(types_total$id), 5)), 
            y = c(100000, 300000, 600000, 1200000, 1800000), 
@@ -94,12 +93,8 @@ ggplot(types_total) +
         axis.text = element_blank(),
         legend.title = element_blank(),
         legend.position = c(.08, .1),
-        legend.text = element_text(color = "white"),
         axis.ticks = element_blank(),
-        plot.background = element_rect(color = "black",
-                                       fill = "black"),
-        title = element_text(color = "white",
-                             face = "bold")) +
+        title = element_text(face = "bold")) +
   scale_fill_viridis(option = "plasma",
                      discrete = TRUE,
                      direction = 1)
