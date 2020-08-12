@@ -1,0 +1,109 @@
+---
+title: "Tidy Tuesday"
+author: "Daniel Molitor"
+date: "8/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+We back. This week's Avatar: The Last Airbender data can be found [here](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-08-11/readme.md).
+This week's data lent itself to word clouds, so that's exactly what I did.
+I relied solely on `wordcloud2` for this venture. Per the usual, the first step
+is to load the packages and data.
+```{r}
+library(tidyverse)
+library(wordcloud2)
+
+avatar <- read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-11/avatar.csv'
+)
+```
+
+The next step is to pull strip all punctuation and digit characters from
+the `full_text` field along with other random characters.
+```{r}
+avatar <- avatar %>%
+  mutate(full_text = str_replace_all(full_text,
+                                     "[\\[\\]!.?,;'\"\\(\\)0-9]", 
+                                     ""))
+```
+
+After cleaning the text field, I want to split the text field into distinct
+words and count the frequency of each word. I will also remove a bunch of
+words that I think are either boring (aka uninformative) or nonsensical.
+**Note**: I name the columns in my tibble `word` and `freq`, as `wordcloud2`
+requires this naming convention.
+```{r}
+words <- tibble(
+  word = unlist(str_split(avatar$full_text, pattern = " "))
+) %>%
+  mutate(
+    word = trimws(tolower(word)),
+  ) %>%
+  count(word) %>%
+  rename(freq = n) %>%
+  filter(!word %in% c("a", 
+                      "and",
+                      "but",
+                      "or",
+                      "the",
+                      "of",
+                      "to",
+                      "you",
+                      "me",
+                      "she",
+                      "her",
+                      "hers",
+                      "he",
+                      "his",
+                      "him",
+                      "at",
+                      "as",
+                      "is",
+                      "it",
+                      "in",
+                      "i",
+                      "on",
+                      "",
+                      "\t",
+                      "-",
+                      "--")) %>%
+  arrange(desc(freq))
+```
+
+Now to make the actual word clouds. `wordcloud2` functionality supports
+wordclouds in the shape of an imported image. I'm only showing a vanilla
+wordcloud because `wordcloud2` has some serious issues when plotting
+using a background image.
+```{r  dpi = 150}
+wordcloud2(words,
+           size = 1,
+           backgroundColor = "#282a36",
+           color = rep(c("#ff79c6",
+                         "#8be9fd",
+                         "#f8f8f2",
+                         "#bd93f9",
+                         "#6272a4"),
+                       nrow(words)),
+           shuffle = FALSE,
+           rotateRatio = 0.25)
+```
+
+And that's it! Although `wordcloud2` has some cool features, it also has its
+share of problems. In particular, when trying to incorporate a wordcloud
+over a background image or use the `letterCloud` function, it either doesn't
+work at all or, as in my case, the code needs to be re-run several times
+before it works. [This Github issue](https://github.com/Lchiffon/wordcloud2/issues/12)
+outlines these problems in more detail. However, the vanilla wordcloud
+implementation works seemlessly and overall is really nice! So, for standard
+wordclouds I wouldn't hesitate to recommend `wordcloud2`, but for more
+advanced features I'd probably turn elsewhere.
+
+Another day, another $
+
+[Daniel](https://dmolitor.com)
